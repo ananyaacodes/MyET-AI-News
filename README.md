@@ -22,7 +22,7 @@ LLM API (OpenAI / similar)
 News dataset / APIs
 
 Setup Instructions:-
-git clone https://github.com/your-username/myet-ai-news.git
+git clone https://github.com/ananyaacodes/myet-ai-news.git
 cd myet-ai-news
 pip install -r requirements.txt
 python app.py
