@@ -28,6 +28,13 @@ cd myet-ai-news
 pip install -r requirements.txt
 python app.py
 
+Demo:-
+### Home Screen
+![Home](screenshots/app.png)
+
+### AI Chat
+![Chat](screenshots/chat.png)
+
 Future Scope:-
 * Real-time news APIs
 * Multilingual support
