@@ -30,7 +30,7 @@ python app.py
 
 Demo:-
 ### Home Screen
-![Home](MyET-AI News\Screenshots)
+![Home]([MyET-AI News\Screenshots](https://github.com/ananyaacodes/MyET-AI-News/blob/main/Screenshot%202026-03-29%20235125.png))
 
 ### AI Chat
 ![Chat](MyET-AI News\Screenshots)
