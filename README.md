@@ -30,10 +30,10 @@ python app.py
 
 Demo:-
 ### Home Screen
-![Home](screenshots/app.png)
+![Home](C:\Users\SNEHAL\Desktop\MyET-AI News\Screenshots)
 
 ### AI Chat
-![Chat](screenshots/chat.png)
+![Chat](C:\Users\SNEHAL\Desktop\MyET-AI News\Screenshots)
 
 Future Scope:-
 * Real-time news APIs
