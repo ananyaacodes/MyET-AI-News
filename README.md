@@ -4,9 +4,9 @@ MyET is an AI-powered platform that transforms traditional news into a personali
 It leverages Generative AI to convert static news into context-aware insights, summaries, and conversations.
 
  Features:-
- Personalized News Feed (based on user profile)
- AI-powered News Chat (ask questions on news)
- Smart Summarization (long → short insights)
+ * Personalized News Feed (based on user profile)
+ * AI-powered News Chat (ask questions on news)
+ * Smart Summarization (long → short insights)
 
  Architecture:-
 The system uses a multi-agent architecture:
@@ -16,10 +16,10 @@ The system uses a multi-agent architecture:
 * Recommendation Agent
 
 Tech Stack:-
-Python
-Streamlit
-LLM API (OpenAI / similar)
-News dataset / APIs
+* Python
+* Streamlit
+* LLM API (OpenAI / similar)
+* News dataset / APIs
 
 Setup Instructions:-
 git clone https://github.com/ananyaacodes/myet-ai-news.git
