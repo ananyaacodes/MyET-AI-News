@@ -1,7 +1,7 @@
 # MyET – AI-Native News Experience
  Overview:-
-MyET is an AI-powered platform that transforms traditional news into a personalized and interactive experience.
-It leverages Generative AI to convert static news into context-aware insights, summaries, and conversations.
+ MyET is an AI-native news platform that transforms static news into a personalized, interactive intelligence system using Generative AI.
+ This helps users save time, understand complex news easily, and make better decisions.
 
  Features:-
  * Personalized News Feed (based on user profile)
