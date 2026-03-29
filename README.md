@@ -22,7 +22,7 @@ Tech Stack:-
 * News dataset / APIs
 
 Setup Instructions:-
-git clone https://github.com/ananyaacodes/myet-ai-news.git
+git clone https://github.com/ananyaacodes/MyET-AI-News.git
 cd myet-ai-news
 pip install -r requirements.txt
 python app.py
