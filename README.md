@@ -49,9 +49,7 @@ It fetches real-time news using a news API and presents articles through a clean
 
 | Technology | Usage |
 |------------|-------|
-| HTML5 | Structure |
-| CSS3 | Styling |
-| JavaScript | Functionality |
+| Python | Backend |
 | News API | Fetching News |
 | Git & GitHub | Version Control |
 
