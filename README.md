@@ -89,7 +89,7 @@ cd MyET-AI-News
 
 ### Run
 
-Simply open **index.html** in your browser.
+Simply open **app.py** in your browser.
 
 ---
 
