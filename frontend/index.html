@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MyET — AI News Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Special+Elite&family=Permanent+Marker&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ============ Icon sprite (reused throughout) ============ -->
+<svg style="display:none">
+  <defs>
+
+    <!-- Halftone megaphone with sound-burst — the signature motif -->
+    <symbol id="icon-megaphone" viewBox="0 0 100 100">
+      <defs>
+        <pattern id="halftone" width="6" height="6" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3" r="1.6" fill="currentColor" />
+        </pattern>
+      </defs>
+      <path d="M30 38 L58 22 L58 78 L30 62 Z" fill="url(#halftone)" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="16" y="42" width="14" height="18" rx="2" fill="currentColor" opacity="0.85"/>
+      <path d="M58 22 Q70 50 58 78" fill="none" stroke="currentColor" stroke-width="2"/>
+      <g class="sound-burst" stroke="#E8B93F" stroke-width="4" stroke-linecap="round" fill="none">
+        <path d="M68 34 L78 26"/>
+        <path d="M72 50 L84 50"/>
+        <path d="M68 66 L78 74"/>
+      </g>
+    </symbol>
+
+    <!-- Logo mark: globe + news -->
+    <symbol id="icon-logo" viewBox="0 0 100 100">
+      <circle cx="38" cy="38" r="26" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M12 38 H64 M38 12 V64 M19 20 Q38 34 57 20 M19 56 Q38 42 57 56" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <rect x="52" y="52" width="36" height="28" rx="2" fill="#F5F2EA" stroke="currentColor" stroke-width="2.5"/>
+      <path d="M58 60 H82 M58 66 H82 M58 72 H72" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+
+    <!-- Profile icon: book -->
+    <symbol id="icon-book" viewBox="0 0 100 100">
+      <path d="M50 25 C40 18 22 18 15 24 V78 C22 72 40 72 50 79 C60 72 78 72 85 78 V24 C78 18 60 18 50 25 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M50 25 V79" stroke="currentColor" stroke-width="4"/>
+    </symbol>
+
+    <!-- Profile icon: chess piece (investor/strategy) -->
+    <symbol id="icon-chess" viewBox="0 0 100 100">
+      <path d="M42 20 h16 v10 l8 8 v10 h-32 v-10 l8-8 z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M34 48 h32 l6 30 h-44 z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M26 82 h48" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Profile icon: lightbulb (founder/idea) -->
+    <symbol id="icon-bulb" viewBox="0 0 100 100">
+      <circle cx="50" cy="40" r="24" fill="none" stroke="currentColor" stroke-width="4"/>
+      <path d="M40 62 h20 M42 72 h16 M44 80 h12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <path d="M50 16 V8 M74 24 l6-6 M26 24 l-6-6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Save/star -->
+    <symbol id="icon-star" viewBox="0 0 100 100">
+      <path d="M50 12 L61 38 L89 41 L68 60 L74 88 L50 73 L26 88 L32 60 L11 41 L39 38 Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
+    </symbol>
+
+  </defs>
+</svg>
+
+<!-- ============ Masthead ============ -->
+<header class="masthead">
+  <div class="masthead__texture" aria-hidden="true"></div>
+  <div class="masthead__inner">
+    <div class="masthead__brand">
+      <svg class="masthead__logo" width="44" height="44"><use href="#icon-logo"/></svg>
+      <div>
+        <h1 class="masthead__title">MyET</h1>
+        <p class="masthead__scribble">cutting through the noise</p>
+      </div>
+    </div>
+    <div class="masthead__meta">
+      <span id="clock" class="masthead__clock">--:--:--</span>
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ Ticker ============ -->
+<div class="ticker">
+  <svg class="ticker__icon" width="26" height="26"><use href="#icon-megaphone"/></svg>
+  <div class="ticker__track" id="tickerTrack">
+    <span class="ticker__item">Loading signal feed…</span>
+  </div>
+</div>
+
+<div class="torn-divider" aria-hidden="true"></div>
+
+<main class="layout">
+
+  <aside class="panel panel--controls">
+    <span class="pin"></span>
+    <h2 class="panel__title">Tune your signal</h2>
+
+    <div class="control-group">
+      <span class="control-label">You are a</span>
+      <div class="profile-picker" id="profilePicker">
+        <button class="profile-btn is-active" data-profile="Student">
+          <svg width="22" height="22"><use href="#icon-book"/></svg> Student
+        </button>
+        <button class="profile-btn" data-profile="Investor">
+          <svg width="22" height="22"><use href="#icon-chess"/></svg> Investor
+        </button>
+        <button class="profile-btn" data-profile="Founder">
+          <svg width="22" height="22"><use href="#icon-bulb"/></svg> Founder
+        </button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label">Interests</span>
+      <div class="chip-group" id="interestChips">
+        <button class="chip is-active" data-interest="Technology">Technology</button>
+        <button class="chip is-active" data-interest="Finance">Finance</button>
+        <button class="chip is-active" data-interest="Startups">Startups</button>
+        <button class="chip is-active" data-interest="Politics">Politics</button>
+      </div>
+    </div>
+
+    <button id="refreshBtn" class="btn btn--primary">↻ Refresh feed</button>
+    <div class="panel__note" id="sourceNote"></div>
+  </aside>
+
+  <section class="feed">
+    <div class="feed__header">
+      <h2 class="feed__title">Signal for <span id="profileLabel">Student</span></h2>
+      <p class="feed__subtitle">Real developments in AI, markets, and startups — clipped and ready.</p>
+    </div>
+    <div class="feed__grid" id="newsGrid"></div>
+  </section>
+
+</main>
+
+<button id="chatToggle" class="chat-fab" aria-label="Open AI assistant">
+  <span class="chat-fab__ring"></span>
+  <svg width="28" height="28"><use href="#icon-megaphone"/></svg>
+</button>
+
+<div id="chatDrawer" class="chat-drawer">
+  <div class="chat-drawer__header">
+    <svg width="24" height="24"><use href="#icon-bulb"/></svg>
+    <span>Ask about the news</span>
+    <button id="chatClose" class="icon-btn" aria-label="Close chat">✕</button>
+  </div>
+  <div class="chat-drawer__context" id="chatContext">
+    Ask a general question, or tap "Ask AI" on any clipping for context-aware answers.
+  </div>
+  <div class="chat-drawer__messages" id="chatMessages"></div>
+  <form id="chatForm" class="chat-drawer__form">
+    <input id="chatInput" type="text" placeholder="What does this mean for me?" autocomplete="off" />
+    <button type="submit" class="btn btn--primary btn--sm">Send</button>
+  </form>
+</div>
+
+<div class="torn-divider torn-divider--flip" aria-hidden="true"></div>
+
+<footer class="footer">
+  <span>Built for ET GenAI Hackathon 🚀 — powered by NewsAPI + Gemini</span>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
