@@ -5,7 +5,7 @@
 ### **Stay Updated with the World of Artificial Intelligence**
 
 <p>
-A modern AI news platform that delivers the latest AI-related news with a clean, responsive, and user-friendly interface.
+A personalized AI news platform — real headlines, real Gemini-powered Q&A, styled like a cut-and-taped newsroom zine.
 </p>
 
 <br>
@@ -20,13 +20,17 @@ A modern AI news platform that delivers the latest AI-related news with a clean,
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github)
 
 <br>
+![Node](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_API-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![NewsAPI](https://img.shields.io/badge/NewsAPI-FF6600?style=for-the-badge)
 </div>
 
 ---
 
 # 📖 About
 
-**MyET AI News** is a responsive web application that keeps users informed with the latest developments in Artificial Intelligence.
+**MyET AI News** delivers a personalized feed by profile (Student / Investor / Founder) and interest, with a real Gemini-powered assistant you can ask about any article. The frontend and backend are fully separate — a static site talking to an API over HTTP — so each can be run, deployed, or replaced independently.
 
 It fetches real-time news using a news API and presents articles through a clean, intuitive interface designed for a seamless reading experience across desktop and mobile devices.
 
@@ -47,28 +51,38 @@ It fetches real-time news using a news API and presents articles through a clean
 
 # 🛠 Tech Stack
 
-| Technology | Usage |
-|------------|-------|
-| Python | Backend |
-| News API | Fetching News |
-| Git & GitHub | Version Control |
+| Layer | Technology |
+|---|---|
+| Backend | Node.js + Express (pure JSON API) |
+| Frontend | Vanilla HTML, CSS, JavaScript (static, no build step) |
+| News data | [NewsAPI](https://newsapi.org) |
+| AI Q&A | [Gemini API](https://ai.google.dev) (`gemini-2.5-flash`) |
 
 ---
 
 # 📂 Project Structure
 
 ```bash
-MyET-AI-News
+
+MyET-AI-News/
+├── backend/
+│   ├── server.js            # Express entry point (API only)
+│   ├── routes/
+│   │   ├── news.js           # GET /api/news
+│   │   └── chat.js            # POST /api/chat
+│   ├── services/
+│   │   ├── newsService.js    # NewsAPI calls + mock fallback
+│   │   └── geminiService.js  # Gemini API calls
+│   ├── .env.example
+│   └── package.json
 │
-├── .gitignore/
+├── frontend/
+│   ├── index.html
+│   ├── css/style.css         # Newsroom-zine collage design
+│   └── js/app.js             # Talks to backend over fetch()
 │
-├── app.py/
-│
-├── LICENSE
-│
-├── images/
-│
-├── README.md
+└── README.md
+
 ```
 
 ---
@@ -87,37 +101,50 @@ git clone https://github.com/ananyaacodes/MyET-AI-News.git
 cd MyET-AI-News
 ```
 
-### Run
+### 2. Run the backend
+ 
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
 
-Simply open **app.py** in your browser.
+Fill in `.env`:
+- `NEWS_API_KEY` from [newsapi.org/register](https://newsapi.org/register)
+- `GEMINI_API_KEY` from [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+```bash
+npm start
+```
+ 
+This runs the API at **http://localhost:3000**.
+ 
+### 3. Run the frontend
+ 
+In a **new terminal**, from the `frontend/` folder:
+ 
+```bash
+cd frontend
+npx serve .
+```
+(Or just open `frontend/index.html` directly in a browser — it'll still work since it talks to the backend over `http://localhost:3000`.)
+ 
+> If you deploy the backend somewhere other than `localhost:3000`, update `API_BASE` at the top of `frontend/js/app.js`.
+
+---
+
+# 🎨 Design
+ 
+The frontend leans into a torn-newsprint, cut-and-taped zine look — halftone megaphone as the recurring "signal" motif, mustard sound-burst accents, typewriter body text, and a poster-style display face. Light mode is warm paper; dark mode swaps to a navy "night edition." Cards behave like pinned clippings: a slight tilt, a lift on hover, staggered fade-in on load.
 
 ---
 
 # 🌟 Future Improvements
-
-- 🌙 Dark Mode
-- 🤖 AI Generated Summaries
-- ❤️ Save Favourite Articles
-- 📊 Sentiment Analysis
-- 🔔 Notifications
-- 🌍 Multi-language Support
-- 📈 Trending AI Dashboard
-
----
-
-# 💡 Why This Project?
-
-✔ Beginner Friendly
-
-✔ Responsive Layout
-
-✔ Real-world API Integration
-
-✔ Clean Folder Structure
-
-✔ Easy to Understand Code
-
-✔ Portfolio Ready
+ 
+- 📊 Sentiment analysis per article
+- 🔔 Push notifications for breaking news
+- 🌍 Multi-language support
+- 🗄️ Real database for saved articles instead of browser storage
+- ☁️ Deploy backend + frontend separately (Render/Railway + Vercel/Netlify)
 
 ---
 
