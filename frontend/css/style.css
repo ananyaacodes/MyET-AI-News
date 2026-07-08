@@ -1,0 +1,553 @@
+/* =========================================================
+   MyET AI News — "newsroom zine" design system
+   Paper, ink, and one loud signal: the megaphone.
+   ========================================================= */
+
+:root {
+  --paper: #EFEAE0;
+  --paper-card: #F7F4EC;
+  --paper-shadow: rgba(28, 24, 18, 0.18);
+  --ink: #1C1A16;
+  --ink-soft: #55504A;
+  --mustard: #E8B93F;
+  --mustard-dim: #F3DFA0;
+  --red-burst: #D6472E;
+  --maroon: #7A1B2A;
+  --navy: #1B2A4A;
+  --border-ink: rgba(28, 24, 18, 0.16);
+
+  --font-display: "Anton", sans-serif;
+  --font-body: "Special Elite", monospace;
+  --font-hand: "Permanent Marker", cursive;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-theme="dark"] {
+  --paper: #14213D;
+  --paper-card: #1B2A4A;
+  --paper-shadow: rgba(0, 0, 0, 0.45);
+  --ink: #F1EEE6;
+  --ink-soft: #B9C2D6;
+  --border-ink: rgba(255, 255, 255, 0.14);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  transition: background 0.4s var(--ease), color 0.4s var(--ease);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--mustard); color: var(--ink); }
+
+/* =========================================================
+   Masthead — newsprint-textured strip with headline mark
+   ========================================================= */
+.masthead {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 3px solid var(--ink);
+}
+
+.masthead__texture {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, var(--ink) 0px, var(--ink) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, transparent 0px, transparent 38px, var(--ink) 38px, var(--ink) 39px);
+  background-size: 6px 6px, 40px 100%;
+}
+
+.masthead__inner {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.masthead__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.masthead__logo { color: var(--ink); flex-shrink: 0; }
+
+.masthead__title {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1;
+}
+
+.masthead__scribble {
+  font-family: var(--font-hand);
+  color: var(--red-burst);
+  font-size: 0.95rem;
+  margin: 0.15rem 0 0;
+  transform: rotate(-1.5deg);
+}
+
+.masthead__meta { display: flex; align-items: center; gap: 1rem; }
+
+.masthead__clock {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.icon-btn {
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s var(--ease), background 0.3s var(--ease);
+}
+.icon-btn:hover { transform: rotate(-8deg) scale(1.05); background: var(--mustard); }
+
+/* =========================================================
+   Ticker — masking-tape strip, megaphone icon, scroll
+   ========================================================= */
+.ticker {
+  background: var(--mustard);
+  border-bottom: 3px solid var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker__icon { color: var(--ink); flex-shrink: 0; }
+
+.ticker__track {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--ink);
+  animation: scroll-ticker 34s linear infinite;
+  padding-left: 100%;
+}
+
+.ticker__item { margin-right: 3rem; }
+
+@keyframes scroll-ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* =========================================================
+   Torn paper divider — the recurring section break
+   ========================================================= */
+.torn-divider {
+  height: 22px;
+  background: var(--paper);
+  clip-path: polygon(
+    0% 100%, 3% 40%, 7% 80%, 12% 30%, 17% 70%, 22% 20%, 28% 65%,
+    34% 15%, 40% 60%, 46% 25%, 52% 75%, 58% 20%, 64% 65%,
+    70% 30%, 76% 70%, 82% 25%, 88% 60%, 94% 20%, 100% 55%, 100% 100%
+  );
+  margin-top: -3px;
+}
+
+.torn-divider--flip { transform: scaleY(-1); margin-top: 0; margin-bottom: -3px; }
+
+/* =========================================================
+   Layout
+   ========================================================= */
+.layout {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   Control panel — pinned clipping
+   ========================================================= */
+.panel {
+  position: relative;
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  height: fit-content;
+  transform: rotate(-0.8deg);
+  box-shadow: 6px 6px 0 var(--paper-shadow);
+}
+
+.pin {
+  position: absolute;
+  top: -9px;
+  left: 24px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--red-burst);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.35);
+  border: 2px solid var(--ink);
+}
+
+.panel__title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 1.25rem;
+  letter-spacing: 0.03em;
+}
+
+.control-group { margin-bottom: 1.5rem; }
+
+.control-label {
+  display: block;
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  color: var(--maroon);
+  margin-bottom: 0.6rem;
+}
+
+.profile-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--paper);
+  border: 2px solid var(--border-ink);
+  color: var(--ink);
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), transform 0.15s var(--ease), background 0.2s var(--ease);
+}
+.profile-btn svg { flex-shrink: 0; }
+.profile-btn:hover { transform: translateX(2px); }
+.profile-btn.is-active {
+  border-color: var(--ink);
+  background: var(--mustard-dim);
+  font-weight: bold;
+}
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.chip {
+  background: var(--paper);
+  border: 2px solid var(--border-ink);
+  color: var(--ink-soft);
+  padding: 0.4rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.chip.is-active {
+  background: var(--red-burst);
+  border-color: var(--ink);
+  color: #fff;
+  transform: rotate(-1deg) scale(1.03);
+}
+
+.btn {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease);
+}
+
+.btn--primary {
+  background: var(--mustard);
+  color: var(--ink);
+  padding: 0.7rem 1rem;
+  width: 100%;
+  font-size: 0.95rem;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.btn--primary:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn--primary:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+
+.btn--sm { padding: 0.55rem 0.9rem; width: auto; }
+
+.panel__note {
+  margin-top: 1rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* =========================================================
+   Feed
+   ========================================================= */
+.feed__title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin: 0 0 0.2rem;
+  letter-spacing: 0.01em;
+}
+
+.feed__title span { color: var(--red-burst); }
+
+.feed__subtitle {
+  color: var(--ink-soft);
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+}
+
+.feed__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  box-shadow: 5px 5px 0 var(--paper-shadow);
+  opacity: 0;
+  transform: translateY(16px) rotate(var(--tilt, 0deg));
+  animation: card-in 0.5s var(--ease) forwards;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+
+.card:hover {
+  transform: translateY(-3px) rotate(0deg);
+  box-shadow: 7px 8px 0 var(--paper-shadow);
+}
+
+@keyframes card-in {
+  to { opacity: 1; transform: translateY(0) rotate(var(--tilt, 0deg)); }
+}
+
+.card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  color: #fff;
+  background: var(--maroon);
+  align-self: flex-start;
+  padding: 0.15rem 0.55rem;
+  border-radius: 100px;
+  text-transform: uppercase;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.card__desc {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.card__actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+
+.card__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--paper);
+  border: 2px solid var(--border-ink);
+  color: var(--ink);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  flex: 1;
+  transition: border-color 0.2s var(--ease), transform 0.15s var(--ease);
+}
+.card__action:hover { border-color: var(--ink); transform: translateY(-1px); }
+.card__action.is-saved { background: var(--mustard); border-color: var(--ink); }
+.card__action svg { flex-shrink: 0; }
+
+/* =========================================================
+   AI chat — floating megaphone + drawer
+   ========================================================= */
+.chat-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--red-burst);
+  border: 3px solid var(--ink);
+  color: var(--paper-card);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 4px 4px 0 var(--ink);
+  z-index: 40;
+  transition: transform 0.15s var(--ease);
+}
+.chat-fab:hover { transform: scale(1.06) rotate(-4deg); }
+
+.chat-fab__ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--mustard);
+  animation: broadcast-pulse 2.6s var(--ease) infinite;
+}
+
+@keyframes broadcast-pulse {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.chat-drawer {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 380px;
+  max-width: 90vw;
+  height: 100%;
+  background: var(--paper-card);
+  border-left: 3px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  transition: right 0.35s var(--ease);
+  z-index: 50;
+}
+
+.chat-drawer.is-open { right: 0; }
+
+.chat-drawer__header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+.chat-drawer__header .icon-btn { margin-left: auto; }
+
+.chat-drawer__context {
+  padding: 0.8rem 1.25rem;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  border-bottom: 2px solid var(--border-ink);
+  font-family: var(--font-body);
+  background: var(--mustard-dim);
+}
+
+.chat-drawer__messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.msg {
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  max-width: 88%;
+  font-family: var(--font-body);
+  border: 2px solid var(--ink);
+}
+
+.msg--user {
+  background: var(--mustard);
+  align-self: flex-end;
+}
+
+.msg--ai {
+  background: var(--paper);
+  align-self: flex-start;
+}
+
+.chat-drawer__form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-top: 2px solid var(--ink);
+}
+
+.chat-drawer__form input {
+  flex-grow: 1;
+  background: var(--paper);
+  border: 2px solid var(--border-ink);
+  color: var(--ink);
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  font-family: var(--font-body);
+}
+.chat-drawer__form input:focus { outline: 2px solid var(--mustard); border-color: var(--ink); }
+
+/* =========================================================
+   Footer
+   ========================================================= */
+.footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+}
+
+/* Accessibility */
+button:focus-visible, input:focus-visible {
+  outline: 3px solid var(--mustard);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker__track, .chat-fab__ring, .card { animation: none !important; }
+  .card { opacity: 1; transform: none; }
+}
