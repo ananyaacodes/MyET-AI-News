@@ -15,6 +15,7 @@
   --maroon: #7A1B2A;
   --navy: #1B2A4A;
   --border-ink: rgba(28, 24, 18, 0.16);
+  --ink-on-mustard: #1C1A16; /* always dark — mustard background never flips with theme */
 
   --font-display: "Anton", sans-serif;
   --font-body: "Special Elite", monospace;
@@ -128,7 +129,7 @@ body {
    ========================================================= */
 .ticker {
   background: var(--mustard);
-  border-bottom: 3px solid var(--ink);
+  border-bottom: 3px solid var(--ink-on-mustard);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -137,13 +138,13 @@ body {
   white-space: nowrap;
 }
 
-.ticker__icon { color: var(--ink); flex-shrink: 0; }
+.ticker__icon { color: var(--ink-on-mustard); flex-shrink: 0; }
 
 .ticker__track {
   display: inline-block;
   font-family: var(--font-body);
   font-size: 0.85rem;
-  color: var(--ink);
+  color: var(--ink-on-mustard);
   animation: scroll-ticker 34s linear infinite;
   padding-left: 100%;
 }
@@ -255,6 +256,7 @@ body {
 .profile-btn.is-active {
   border-color: var(--ink);
   background: var(--mustard-dim);
+  color: var(--ink-on-mustard);
   font-weight: bold;
 }
 
@@ -290,7 +292,7 @@ body {
 
 .btn--primary {
   background: var(--mustard);
-  color: var(--ink);
+  color: var(--ink-on-mustard);
   padding: 0.7rem 1rem;
   width: 100%;
   font-size: 0.95rem;
@@ -407,7 +409,7 @@ body {
   transition: border-color 0.2s var(--ease), transform 0.15s var(--ease);
 }
 .card__action:hover { border-color: var(--ink); transform: translateY(-1px); }
-.card__action.is-saved { background: var(--mustard); border-color: var(--ink); }
+.card__action.is-saved { background: var(--mustard); border-color: var(--ink); color: var(--ink-on-mustard); }
 .card__action svg { flex-shrink: 0; }
 
 /* =========================================================
@@ -477,7 +479,7 @@ body {
 .chat-drawer__context {
   padding: 0.8rem 1.25rem;
   font-size: 0.75rem;
-  color: var(--ink-soft);
+  color: var(--ink-on-mustard);
   border-bottom: 2px solid var(--border-ink);
   font-family: var(--font-body);
   background: var(--mustard-dim);
@@ -504,6 +506,7 @@ body {
 
 .msg--user {
   background: var(--mustard);
+  color: var(--ink-on-mustard);
   align-self: flex-end;
 }
 
