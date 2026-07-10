@@ -10,6 +10,29 @@ const INTEREST_QUERIES = {
   Politics: "policy OR government OR regulation",
 };
 
+// Restricts results to established news outlets. Without this, NewsAPI's "everything"
+// endpoint happily matches GitHub repo READMEs, PyPI package pages, and Hacker News
+// threads whenever they contain the query keywords — technically relevant, but not
+// what "news" should mean here. This trades a bit of coverage for outlets that are
+// actually reporting on a story rather than just mentioning the keyword.
+const NEWS_DOMAINS = [
+  "techcrunch.com",
+  "theverge.com",
+  "wired.com",
+  "arstechnica.com",
+  "engadget.com",
+  "reuters.com",
+  "apnews.com",
+  "bloomberg.com",
+  "cnbc.com",
+  "forbes.com",
+  "businessinsider.com",
+  "nytimes.com",
+  "bbc.co.uk",
+  "axios.com",
+  "venturebeat.com",
+].join(",");
+
 // Used when NEWS_API_KEY is missing, or the API call fails, so the app is always
 // runnable and demoable without hard-crashing on a missing key.
 const MOCK_ARTICLES = [
@@ -98,6 +121,7 @@ async function getNews(interests = []) {
 
     const url = new URL(NEWS_API_BASE);
     url.searchParams.set("q", combinedQuery || "AI");
+    url.searchParams.set("domains", NEWS_DOMAINS);
     url.searchParams.set("language", "en");
     url.searchParams.set("sortBy", "publishedAt");
     url.searchParams.set("pageSize", "12");
@@ -110,7 +134,18 @@ async function getNews(interests = []) {
       throw new Error(`NewsAPI ${response.status}: ${body}`);
     }
 
-    const data = await response.json();
+    let data = await response.json();
+
+    // The domain allowlist occasionally starves narrower queries (e.g. a single
+    // niche interest). If so, retry once without it rather than showing nothing —
+    // better a slightly noisier feed than an empty one.
+    if (!data.articles || data.articles.length === 0) {
+      url.searchParams.delete("domains");
+      const retryResponse = await fetch(url.toString());
+      if (retryResponse.ok) {
+        data = await retryResponse.json();
+      }
+    }
 
     const articles = (data.articles || []).map((a, idx) => ({
       id: `live-${idx}-${Date.now()}`,
