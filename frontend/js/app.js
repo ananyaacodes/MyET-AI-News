@@ -3,7 +3,7 @@ const API_BASE = "http://localhost:3000";
 
 // ===== State =====
 const state = {
-  profile: "Student",
+  profile: "General",
   interests: ["Technology", "Finance", "Startups", "Politics"],
   articles: [],
   savedIds: new Set(JSON.parse(localStorage.getItem("myet_saved") || "[]")),
@@ -60,6 +60,7 @@ els.profilePicker.addEventListener("click", (e) => {
   btn.classList.add("is-active");
   state.profile = btn.dataset.profile;
   els.profileLabel.textContent = state.profile;
+  loadNews(); // profile changes the query, so the feed needs to actually refetch
 });
 
 // ===== Interest chips =====
@@ -92,7 +93,10 @@ async function loadNews() {
   els.newsGrid.innerHTML = `<p style="color:var(--ink-soft); font-family: var(--font-body);">Fetching signal…</p>`;
 
   try {
-    const params = new URLSearchParams({ interests: state.interests.join(",") });
+    const params = new URLSearchParams({
+      interests: state.interests.join(","),
+      profile: state.profile,
+    });
     const res = await fetch(`${API_BASE}/api/news?${params}`);
     const data = await res.json();
 
