@@ -8,6 +8,7 @@ const state = {
   articles: [],
   savedIds: new Set(JSON.parse(localStorage.getItem("myet_saved") || "[]")),
   activeChatContext: null,
+  searchTerm: "",
 };
 
 // ===== Elements =====
@@ -28,6 +29,7 @@ const els = {
   chatMessages: document.getElementById("chatMessages"),
   chatForm: document.getElementById("chatForm"),
   chatInput: document.getElementById("chatInput"),
+  searchInput: document.getElementById("searchInput"),
 };
 
 // ===== Clock =====
@@ -75,6 +77,16 @@ els.interestChips.addEventListener("click", (e) => {
 
 els.refreshBtn.addEventListener("click", loadNews);
 
+// ===== Search (client-side filter over loaded articles) =====
+let searchDebounce;
+els.searchInput.addEventListener("input", () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    state.searchTerm = els.searchInput.value.trim().toLowerCase();
+    renderGrid();
+  }, 150);
+});
+
 // ===== Load news =====
 async function loadNews() {
   els.newsGrid.innerHTML = `<p style="color:var(--ink-soft); font-family: var(--font-body);">Fetching signal…</p>`;
@@ -102,18 +114,37 @@ async function loadNews() {
 }
 
 function renderGrid() {
-  if (state.articles.length === 0) {
-    els.newsGrid.innerHTML = `<p style="color:var(--ink-soft);">No articles match your selected interests. Try adding one.</p>`;
+  const term = state.searchTerm;
+  const visible = term
+    ? state.articles.filter(
+        (a) =>
+          a.title.toLowerCase().includes(term) ||
+          a.description.toLowerCase().includes(term)
+      )
+    : state.articles;
+
+  if (visible.length === 0) {
+    const msg = term
+      ? `No clippings match "${escapeHtml(term)}".`
+      : "No articles match your selected interests. Try adding one.";
+    els.newsGrid.innerHTML = `<p style="color:var(--ink-soft);">${msg}</p>`;
     return;
   }
 
-  els.newsGrid.innerHTML = state.articles
+  els.newsGrid.innerHTML = visible
     .map((a, i) => {
       const isSaved = state.savedIds.has(a.id);
       const tilt = [-1, 1, -0.6, 0.8][i % 4];
       const delay = (i % 6) * 0.06;
+      const imageBlock = a.image
+        ? `<div class="card__image-wrap">
+             <img class="card__image" src="${a.image}" alt="" loading="lazy"
+               onerror="this.parentElement.remove()" />
+           </div>`
+        : "";
       return `
         <article class="card" data-id="${a.id}" style="--tilt:${tilt}deg; animation-delay:${delay}s;">
+          ${imageBlock}
           <span class="card__meta">${a.category} · ${a.source}</span>
           <h3 class="card__title">${escapeHtml(a.title)}</h3>
           <p class="card__desc">${escapeHtml(a.description)}</p>
