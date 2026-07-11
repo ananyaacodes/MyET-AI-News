@@ -152,6 +152,7 @@ async function getNews(interests = []) {
       title: a.title,
       description: a.description || "No description available.",
       url: a.url,
+      image: a.urlToImage || null,
       source: a.source?.name || "Unknown source",
       category: activeInterests[idx % activeInterests.length],
       publishedAt: a.publishedAt,
