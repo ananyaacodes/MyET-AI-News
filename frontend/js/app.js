@@ -108,6 +108,8 @@ async function loadNews() {
       els.sourceNote.textContent = "Showing demo clippings — add NEWS_API_KEY to backend/.env for live data.";
     } else if (data.source === "mock-fallback") {
       els.sourceNote.textContent = `Live fetch failed, showing demo data. (${data.error || "unknown error"})`;
+    } else if (state.profile !== "General" && data.profileApplied === false) {
+      els.sourceNote.textContent = `Not enough "${state.profile}"-specific results right now — showing broader matches instead.`;
     } else {
       els.sourceNote.textContent = "Live feed from NewsAPI.";
     }
