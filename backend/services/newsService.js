@@ -15,9 +15,9 @@ const INTEREST_QUERIES = {
 // sent to NewsAPI never changed, so all three showed identical results.
 // "General" applies no bias at all — just the raw interest categories.
 const PROFILE_QUERIES = {
-  Student: "career OR internship OR learning OR education OR scholarship",
-  Investor: "earnings OR IPO OR valuation OR investment OR shares",
-  Founder: "\"product launch\" OR scaling OR \"venture capital\" OR founder OR bootstrapped",
+  Student: "\"career advice\" OR internship OR scholarship OR \"student loan\" OR \"college graduate\"",
+  Investor: "earnings OR IPO OR valuation OR \"stock market\" OR shareholders",
+  Founder: "\"product launch\" OR \"venture capital\" OR bootstrapped OR \"seed funding\"",
   General: "",
 };
 
@@ -154,17 +154,28 @@ async function getNews(interests = [], profile = "General") {
       throw new Error(`NewsAPI ${response.status}: ${body}`);
     }
     let data = await response.json();
+    let profileApplied = Boolean(profileModifier);
+    console.log(`[newsService] tier 1 (domains+profile): ${data.totalResults ?? 0} results`);
 
-    // The profile+domain combo can starve narrow queries (e.g. a niche interest
-    // paired with a specific profile). Loosen progressively rather than showing
-    // nothing: first drop the domain allowlist, then drop the profile bias too.
+    // Loosen progressively, but keep source quality (domains) for as long as
+    // possible — drop the profile bias first, and only give up on outlet
+    // quality as a last resort. Previously this dropped domains first, which
+    // let low-quality sources back in before the profile bias was even gone.
     if (!data.articles || data.articles.length === 0) {
-      response = await fetch(buildUrl(fullQuery, false).toString());
-      if (response.ok) data = await response.json();
+      response = await fetch(buildUrl(interestQuery || "AI", true).toString());
+      if (response.ok) {
+        data = await response.json();
+        profileApplied = false;
+        console.log(`[newsService] tier 2 (domains, no profile): ${data.totalResults ?? 0} results`);
+      }
     }
     if (!data.articles || data.articles.length === 0) {
       response = await fetch(buildUrl(interestQuery || "AI", false).toString());
-      if (response.ok) data = await response.json();
+      if (response.ok) {
+        data = await response.json();
+        profileApplied = false;
+        console.log(`[newsService] tier 3 (no domains, no profile): ${data.totalResults ?? 0} results`);
+      }
     }
 
     const articles = (data.articles || []).map((a, idx) => ({
@@ -178,7 +189,7 @@ async function getNews(interests = [], profile = "General") {
       publishedAt: a.publishedAt,
     }));
 
-    return { source: "live", articles };
+    return { source: "live", profileApplied, articles };
   } catch (err) {
     console.error("[newsService] Falling back to mock data:", err.message);
     return {
