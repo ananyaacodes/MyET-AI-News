@@ -182,6 +182,9 @@ async function getNews(interests = [], profile = "General") {
       id: `live-${idx}-${Date.now()}`,
       title: a.title,
       description: a.description || "No description available.",
+      // NewsAPI's free tier truncates this to ~200 chars with a "[+N chars]"
+      // suffix — strip that marker so the detail view doesn't show it verbatim.
+      content: (a.content || "").replace(/\s*\[\+\d+\s*chars\]\s*$/i, "").trim() || null,
       url: a.url,
       image: a.urlToImage || null,
       source: a.source?.name || "Unknown source",
