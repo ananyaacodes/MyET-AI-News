@@ -5,6 +5,7 @@ const cors = require("cors");
 
 const newsRoutes = require("./routes/news");
 const chatRoutes = require("./routes/chat");
+const translateRoutes = require("./routes/translate");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,9 +18,10 @@ app.use(express.json());
 // frontend + backend setup.
 app.use("/api/news", newsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/translate", translateRoutes);
 
 app.get("/", (req, res) => {
-  res.json({ status: "ok", message: "MyET AI News API — see /api/news and /api/chat" });
+  res.json({ status: "ok", message: "MyET AI News API — see /api/news, /api/chat, /api/translate" });
 });
 
 app.use((err, req, res, next) => {
