@@ -178,13 +178,49 @@ async function getNews(interests = [], profile = "General") {
       }
     }
 
-    const articles = (data.articles || []).map((a, idx) => ({
+    /**
+ * NewsAPI's "content" field is scraped from the source page, and for some
+ * outlets that scrape carries real cruft: leftover HTML tags, a sentence
+ * repeated twice, or a truncated byline glued onto the end (e.g. "...law.
+ * by Terrence O'BrienClo"). This cleans the common cases so the detail view
+ * shows readable prose instead of visible markup and garbage fragments.
+ */
+function cleanArticleContent(raw) {
+  if (!raw) return null;
+
+  const wasTruncated = /\[\+\d+\s*chars\]/i.test(raw) || /(\.{3}|…)\s*$/.test(raw);
+
+  let text = raw
+    .replace(/\s*\[\+\d+\s*chars\]\s*$/i, "") // NewsAPI's truncation marker
+    .replace(/<[^>]+>/g, " ") // any leftover HTML tags from the scrape
+    .replace(/(\.{3}|…)\s*$/, "") // trailing ellipsis — re-added at the end if still truncated
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) return null;
+
+  // Drop consecutive duplicate sentences (a real artifact from some sources)
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const deduped = sentences.filter((s, i) => s !== sentences[i - 1]);
+  text = deduped.join(" ");
+
+  // A truncated, glued-on byline at the very end looks like "by First Last"
+  // with no closing punctuation (a genuine sentence ending in "by Judge Smith."
+  // would still have its period, so this only catches the cut-off case).
+  if (!/[.!?]$/.test(text)) {
+    text = text.replace(/\s+by\s+[A-Z][A-Za-z'.]*(?:\s+[A-Z][A-Za-z'.]*){0,3}$/, "").trim();
+  }
+
+  if (wasTruncated && text && !text.endsWith("…")) text += "…";
+
+  return text || null;
+}
+
+const articles = (data.articles || []).map((a, idx) => ({
       id: `live-${idx}-${Date.now()}`,
       title: a.title,
       description: a.description || "No description available.",
-      // NewsAPI's free tier truncates this to ~200 chars with a "[+N chars]"
-      // suffix — strip that marker so the detail view doesn't show it verbatim.
-      content: (a.content || "").replace(/\s*\[\+\d+\s*chars\]\s*$/i, "").trim() || null,
+      content: cleanArticleContent(a.content),
       url: a.url,
       image: a.urlToImage || null,
       source: a.source?.name || "Unknown source",
