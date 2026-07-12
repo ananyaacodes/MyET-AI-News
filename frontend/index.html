@@ -261,7 +261,11 @@
 
     <div class="article-modal__image-wrap" id="modalImageWrap">
       <img class="article-modal__image" id="modalImage" src="" alt="" />
-      <svg class="article-modal__camera-badge" width="18" height="18"><use href="#icon-camera"/></svg>
+      <div class="article-modal__image-placeholder" id="modalImagePlaceholder">
+        <svg width="36" height="36"><use href="#icon-camera"/></svg>
+        <span data-i18n="noPhoto">No photo for this clipping</span>
+      </div>
+      <svg class="article-modal__camera-badge" width="18" height="18" id="modalCameraBadge"><use href="#icon-camera"/></svg>
     </div>
 
     <div class="article-modal__body" id="modalBody"></div>
