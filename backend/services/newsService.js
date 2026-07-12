@@ -219,7 +219,7 @@ function cleanArticleContent(raw) {
 const articles = (data.articles || []).map((a, idx) => ({
       id: `live-${idx}-${Date.now()}`,
       title: a.title,
-      description: a.description || "No description available.",
+      description: a.description || null,
       content: cleanArticleContent(a.content),
       url: a.url,
       image: a.urlToImage || null,
