@@ -46,6 +46,7 @@ It fetches real-time news using a news API and presents articles through a clean
 - 🎨 Modern User Interface
 - 🚀 Lightweight & Fast
 - 🌐 Easy to Customize
+- 🌍 Multi-language support
 
 ---
 
@@ -142,7 +143,6 @@ The frontend leans into a torn-newsprint, cut-and-taped zine look — halftone m
  
 - 📊 Sentiment analysis per article
 - 🔔 Push notifications for breaking news
-- 🌍 Multi-language support
 - 🗄️ Real database for saved articles instead of browser storage
 - ☁️ Deploy backend + frontend separately (Render/Railway + Vercel/Netlify)
 
