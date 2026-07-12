@@ -12,6 +12,7 @@ const state = {
   savedIds: new Set(JSON.parse(localStorage.getItem("myet_saved") || "[]")),
   activeChatContext: null, // ORIGINAL English text, so Gemini always gets clean source text
   activeChatArticleId: null,
+  activeModalArticleId: null,
   searchTerm: "",
   language: localStorage.getItem("myet_lang") || "en",
   isTranslating: false,
@@ -40,6 +41,19 @@ const els = {
   chatForm: document.getElementById("chatForm"),
   chatInput: document.getElementById("chatInput"),
   searchInput: document.getElementById("searchInput"),
+  articleModal: document.getElementById("articleModal"),
+  articleModalBackdrop: document.getElementById("articleModalBackdrop"),
+  articleModalClose: document.getElementById("articleModalClose"),
+  modalCategory: document.getElementById("modalCategory"),
+  modalSource: document.getElementById("modalSource"),
+  modalDate: document.getElementById("modalDate"),
+  modalHeadline: document.getElementById("modalHeadline"),
+  modalDeck: document.getElementById("modalDeck"),
+  modalImageWrap: document.getElementById("modalImageWrap"),
+  modalImage: document.getElementById("modalImage"),
+  modalBody: document.getElementById("modalBody"),
+  modalReadMore: document.getElementById("modalReadMore"),
+  modalAskAI: document.getElementById("modalAskAI"),
 };
 
 // ===== Clock =====
@@ -125,9 +139,11 @@ els.languageSelect.addEventListener("change", async () => {
  * exists yet, otherwise the cached translated version.
  */
 function getDisplayText(article) {
-  if (state.language === "en") return { title: article.title, description: article.description };
+  if (state.language === "en") {
+    return { title: article.title, description: article.description, content: article.content };
+  }
   const cached = article.translations && article.translations[state.language];
-  return cached || { title: article.title, description: article.description };
+  return cached || { title: article.title, description: article.description, content: article.content };
 }
 
 /**
@@ -147,7 +163,7 @@ async function translateArticlesToCurrentLanguage() {
   renderGrid(); // shows the "Translating…" state immediately
 
   const texts = [];
-  needsTranslation.forEach((a) => texts.push(a.title, a.description));
+  needsTranslation.forEach((a) => texts.push(a.title, a.description, a.content || a.description));
 
   try {
     const res = await fetch(`${API_BASE}/api/translate`, {
@@ -161,8 +177,9 @@ async function translateArticlesToCurrentLanguage() {
       needsTranslation.forEach((a, i) => {
         a.translations = a.translations || {};
         a.translations[state.language] = {
-          title: data.translations[i * 2] || a.title,
-          description: data.translations[i * 2 + 1] || a.description,
+          title: data.translations[i * 3] || a.title,
+          description: data.translations[i * 3 + 1] || a.description,
+          content: data.translations[i * 3 + 2] || a.content,
         };
       });
     }
@@ -302,10 +319,19 @@ function renderGrid() {
     .join("");
 
   els.newsGrid.querySelectorAll(".save-btn").forEach((btn) => {
-    btn.addEventListener("click", () => toggleSave(btn.dataset.id, btn));
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSave(btn.dataset.id, btn);
+    });
   });
   els.newsGrid.querySelectorAll(".ask-btn").forEach((btn) => {
-    btn.addEventListener("click", () => openChatWithContext(btn.dataset.id));
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openChatWithContext(btn.dataset.id);
+    });
+  });
+  els.newsGrid.querySelectorAll(".card").forEach((card) => {
+    card.addEventListener("click", () => openArticleDetail(card.dataset.id));
   });
 }
 
@@ -334,6 +360,67 @@ function escapeHtml(str = "") {
   div.textContent = str;
   return div.innerHTML;
 }
+
+// ===== Article detail modal =====
+function openArticleDetail(articleId) {
+  const article = state.articles.find((a) => a.id === articleId);
+  if (!article) return;
+
+  state.activeModalArticleId = articleId;
+  const lang = state.language;
+  const display = getDisplayText(article);
+
+  els.modalCategory.textContent = t(CATEGORY_KEYS[article.category] || article.category, lang);
+  els.modalSource.textContent = article.source;
+  els.modalDate.textContent = article.publishedAt
+    ? new Date(article.publishedAt).toLocaleDateString(LOCALE_CODES[lang] || "en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "";
+
+  els.modalHeadline.textContent = display.title;
+  els.modalDeck.textContent = display.description;
+
+  if (article.image) {
+    els.modalImageWrap.style.display = "";
+    els.modalImage.src = article.image;
+    els.modalImage.alt = display.title;
+  } else {
+    els.modalImageWrap.style.display = "none";
+  }
+
+  // Body: prefer NewsAPI's longer "content" field over the short description,
+  // since that's the whole point of the detail view — falls back gracefully
+  // if content wasn't available for this article.
+  els.modalBody.textContent = display.content || display.description;
+
+  els.modalReadMore.href = article.url || "#";
+  els.modalAskAI.onclick = () => {
+    closeArticleDetail();
+    openChatWithContext(articleId);
+  };
+
+  document.body.style.overflow = "hidden";
+  els.articleModal.classList.add("is-open");
+  els.articleModal.setAttribute("aria-hidden", "false");
+}
+
+function closeArticleDetail() {
+  els.articleModal.classList.remove("is-open");
+  els.articleModal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  state.activeModalArticleId = null;
+}
+
+els.articleModalClose.addEventListener("click", closeArticleDetail);
+els.articleModalBackdrop.addEventListener("click", closeArticleDetail);
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (els.articleModal.classList.contains("is-open")) closeArticleDetail();
+  else if (els.chatDrawer.classList.contains("is-open")) closeChat();
+});
 
 // ===== Chat drawer =====
 function openChat() { els.chatDrawer.classList.add("is-open"); }
