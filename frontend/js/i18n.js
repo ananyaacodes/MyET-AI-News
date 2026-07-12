@@ -60,6 +60,8 @@ const I18N = {
     demoFeed: "Showing demo clippings — add NEWS_API_KEY to backend/.env for live data.",
     notEnoughProfileResults: "Not enough profile-specific results right now — showing broader matches instead.",
     readFullStory: "Read full story",
+    noPhoto: "No photo for this clipping",
+    noSummary: "Full details weren't provided — tap Read full story for more.",
   },
   hi: {
     tagline: "शोर से परे असली खबर",
@@ -98,6 +100,8 @@ const I18N = {
     demoFeed: "डेमो कतरनें दिखाई जा रही हैं — लाइव डेटा के लिए backend/.env में NEWS_API_KEY जोड़ें।",
     notEnoughProfileResults: "अभी इस प्रोफ़ाइल के लिए पर्याप्त खबरें नहीं हैं — व्यापक परिणाम दिखाए जा रहे हैं।",
     readFullStory: "पूरी खबर पढ़ें",
+    noPhoto: "इस कतरन के लिए कोई फ़ोटो नहीं",
+    noSummary: "पूरी जानकारी उपलब्ध नहीं है — अधिक जानने के लिए पूरी खबर पढ़ें।",
   },
   es: {
     tagline: "cortando el ruido",
@@ -136,6 +140,8 @@ const I18N = {
     demoFeed: "Mostrando recortes de demostración — añade NEWS_API_KEY en backend/.env para datos en vivo.",
     notEnoughProfileResults: "No hay suficientes resultados para este perfil ahora mismo — mostrando resultados más amplios.",
     readFullStory: "Leer la noticia completa",
+    noPhoto: "Sin foto para este recorte",
+    noSummary: "No se proporcionaron más detalles — toca Leer la noticia completa.",
   },
   fr: {
     tagline: "couper à travers le bruit",
@@ -174,6 +180,8 @@ const I18N = {
     demoFeed: "Coupures de démonstration affichées — ajoutez NEWS_API_KEY dans backend/.env pour des données en direct.",
     notEnoughProfileResults: "Pas assez de résultats pour ce profil pour le moment — affichage de résultats plus larges.",
     readFullStory: "Lire l'article complet",
+    noPhoto: "Pas de photo pour cette coupure",
+    noSummary: "Aucun détail supplémentaire fourni — touchez Lire l'article complet.",
   },
   de: {
     tagline: "den Lärm durchdringen",
@@ -212,6 +220,8 @@ const I18N = {
     demoFeed: "Demo-Ausschnitte werden angezeigt — füge NEWS_API_KEY in backend/.env hinzu für Live-Daten.",
     notEnoughProfileResults: "Gerade nicht genug profilspezifische Ergebnisse — breitere Treffer werden angezeigt.",
     readFullStory: "Ganzen Artikel lesen",
+    noPhoto: "Kein Foto für diesen Ausschnitt",
+    noSummary: "Keine weiteren Details verfügbar — tippe auf Ganzen Artikel lesen.",
   },
 };
 
