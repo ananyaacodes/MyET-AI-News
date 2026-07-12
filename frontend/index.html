@@ -102,7 +102,7 @@
       <svg class="masthead__logo" width="44" height="44"><use href="#icon-logo"/></svg>
       <div>
         <h1 class="masthead__title">MyET</h1>
-        <p class="masthead__scribble">cutting through the noise</p>
+        <p class="masthead__scribble" data-i18n="tagline">cutting through the noise</p>
       </div>
     </div>
     <div class="masthead__meta">
@@ -116,7 +116,7 @@
 <div class="ticker">
   <svg class="ticker__icon" width="26" height="26"><use href="#icon-megaphone"/></svg>
   <div class="ticker__track" id="tickerTrack">
-    <span class="ticker__item">Loading signal feed…</span>
+    <span class="ticker__item" data-i18n="loadingTicker">Loading signal feed…</span>
   </div>
 </div>
 
@@ -126,49 +126,60 @@
 
   <aside class="panel panel--controls">
     <span class="pin"></span>
-    <h2 class="panel__title">Tune your signal</h2>
+    <h2 class="panel__title" data-i18n="tuneSignal">Tune your signal</h2>
 
     <div class="control-group">
-      <span class="control-label">You are a</span>
+      <span class="control-label" data-i18n="languageLabel">Language</span>
+      <select id="languageSelect" class="control-select">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label" data-i18n="youAreA">You are a</span>
       <div class="profile-picker" id="profilePicker">
         <button class="profile-btn is-active" data-profile="General">
-          <svg width="22" height="22"><use href="#icon-logo"/></svg> General
+          <svg width="22" height="22"><use href="#icon-logo"/></svg> <span data-i18n="general">General</span>
         </button>
         <button class="profile-btn" data-profile="Student">
-          <svg width="22" height="22"><use href="#icon-book"/></svg> Student
+          <svg width="22" height="22"><use href="#icon-book"/></svg> <span data-i18n="student">Student</span>
         </button>
         <button class="profile-btn" data-profile="Investor">
-          <svg width="22" height="22"><use href="#icon-chess"/></svg> Investor
+          <svg width="22" height="22"><use href="#icon-chess"/></svg> <span data-i18n="investor">Investor</span>
         </button>
         <button class="profile-btn" data-profile="Founder">
-          <svg width="22" height="22"><use href="#icon-bulb"/></svg> Founder
+          <svg width="22" height="22"><use href="#icon-bulb"/></svg> <span data-i18n="founder">Founder</span>
         </button>
       </div>
     </div>
 
     <div class="control-group">
-      <span class="control-label">Interests</span>
+      <span class="control-label" data-i18n="interests">Interests</span>
       <div class="chip-group" id="interestChips">
-        <button class="chip is-active" data-interest="Technology">Technology</button>
-        <button class="chip is-active" data-interest="Finance">Finance</button>
-        <button class="chip is-active" data-interest="Startups">Startups</button>
-        <button class="chip is-active" data-interest="Politics">Politics</button>
+        <button class="chip is-active" data-interest="Technology"><span data-i18n="technology">Technology</span></button>
+        <button class="chip is-active" data-interest="Finance"><span data-i18n="finance">Finance</span></button>
+        <button class="chip is-active" data-interest="Startups"><span data-i18n="startups">Startups</span></button>
+        <button class="chip is-active" data-interest="Politics"><span data-i18n="politics">Politics</span></button>
       </div>
     </div>
 
-    <button id="refreshBtn" class="btn btn--primary">↻ Refresh feed</button>
+    <button id="refreshBtn" class="btn btn--primary">↻ <span data-i18n="refresh">Refresh feed</span></button>
     <div class="panel__note" id="sourceNote"></div>
   </aside>
 
   <section class="feed">
     <div class="feed__header">
-      <h2 class="feed__title">Signal for <span id="profileLabel">General</span></h2>
-      <p class="feed__subtitle">Real developments in AI, markets, and startups — clipped and ready.</p>
+      <h2 class="feed__title"><span data-i18n="signalFor">Signal for</span> <span id="profileLabel" class="feed__title-highlight">General</span></h2>
+      <p class="feed__subtitle" data-i18n="subtitle">Real developments in AI, markets, and startups — clipped and ready.</p>
     </div>
 
     <div class="search-bar">
       <svg width="20" height="20" class="search-bar__icon"><use href="#icon-search"/></svg>
-      <input id="searchInput" type="text" placeholder="Search the clippings…" autocomplete="off" />
+      <input id="searchInput" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Search the clippings…" autocomplete="off" />
     </div>
 
     <div class="feed__grid" id="newsGrid"></div>
@@ -184,25 +195,26 @@
 <div id="chatDrawer" class="chat-drawer">
   <div class="chat-drawer__header">
     <svg width="24" height="24"><use href="#icon-bulb"/></svg>
-    <span>Ask about the news</span>
+    <span data-i18n="askNews">Ask about the news</span>
     <button id="chatClose" class="icon-btn" aria-label="Close chat">✕</button>
   </div>
-  <div class="chat-drawer__context" id="chatContext">
+  <div class="chat-drawer__context" id="chatContext" data-i18n="chatContextDefault">
     Ask a general question, or tap "Ask AI" on any clipping for context-aware answers.
   </div>
   <div class="chat-drawer__messages" id="chatMessages"></div>
   <form id="chatForm" class="chat-drawer__form">
-    <input id="chatInput" type="text" placeholder="What does this mean for me?" autocomplete="off" />
-    <button type="submit" class="btn btn--primary btn--sm">Send</button>
+    <input id="chatInput" type="text" data-i18n-placeholder="chatInputPlaceholder" placeholder="What does this mean for me?" autocomplete="off" />
+    <button type="submit" class="btn btn--primary btn--sm" data-i18n="send">Send</button>
   </form>
 </div>
 
 <div class="torn-divider torn-divider--flip" aria-hidden="true"></div>
 
 <footer class="footer">
-  <span>Built for ET GenAI Hackathon 🚀 — powered by NewsAPI + Gemini</span>
+  <span data-i18n="footer">Built for ET GenAI Hackathon 🚀 — powered by NewsAPI + Gemini</span>
 </footer>
 
+<script src="js/i18n.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
