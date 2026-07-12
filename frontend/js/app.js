@@ -1,14 +1,23 @@
 // Backend runs separately (see /backend). Change this if you deploy it elsewhere.
 const API_BASE = "http://localhost:3000";
 
+const PROFILE_KEYS = { General: "general", Student: "student", Investor: "investor", Founder: "founder" };
+const CATEGORY_KEYS = { Technology: "technology", Finance: "finance", Startups: "startups", Politics: "politics" };
+
 // ===== State =====
 const state = {
   profile: "General",
   interests: ["Technology", "Finance", "Startups", "Politics"],
   articles: [],
   savedIds: new Set(JSON.parse(localStorage.getItem("myet_saved") || "[]")),
-  activeChatContext: null,
+  activeChatContext: null, // ORIGINAL English text, so Gemini always gets clean source text
+  activeChatArticleId: null,
   searchTerm: "",
+  language: localStorage.getItem("myet_lang") || "en",
+  isTranslating: false,
+  // Remembers the last fetch outcome so the source note can be re-translated
+  // on a language switch without needing to refetch from NewsAPI.
+  lastFetchOutcome: null, // { type: "mock" | "mock-fallback" | "profile-loosened" | "live", error }
 };
 
 // ===== Elements =====
@@ -22,6 +31,7 @@ const els = {
   tickerTrack: document.getElementById("tickerTrack"),
   clock: document.getElementById("clock"),
   themeToggle: document.getElementById("themeToggle"),
+  languageSelect: document.getElementById("languageSelect"),
   chatToggle: document.getElementById("chatToggle"),
   chatDrawer: document.getElementById("chatDrawer"),
   chatClose: document.getElementById("chatClose"),
@@ -52,6 +62,119 @@ els.themeToggle.addEventListener("click", () => {
   if (saved) document.documentElement.setAttribute("data-theme", saved);
 })();
 
+// =========================================================
+// i18n — static UI chrome (instant, no API call) + dynamic
+// article content translation (real Gemini calls, cached per language)
+// =========================================================
+
+function applyStaticTranslations() {
+  const lang = state.language;
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n, lang);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder, lang);
+  });
+}
+
+function updateProfileLabel() {
+  const key = PROFILE_KEYS[state.profile] || "general";
+  els.profileLabel.textContent = t(key, state.language);
+}
+
+// Re-renders the note under "Refresh feed" in the current language, using the
+// last fetch's outcome rather than re-hitting the backend on every language switch.
+function updateSourceNote() {
+  const outcome = state.lastFetchOutcome;
+  if (!outcome) return;
+  const lang = state.language;
+
+  if (outcome.type === "mock") {
+    els.sourceNote.textContent = t("demoFeed", lang);
+  } else if (outcome.type === "mock-fallback") {
+    els.sourceNote.textContent = `${t("demoFeed", lang)} (${outcome.error || "unknown error"})`;
+  } else if (outcome.type === "profile-loosened") {
+    els.sourceNote.textContent = t("notEnoughProfileResults", lang);
+  } else {
+    els.sourceNote.textContent = t("liveFeed", lang);
+  }
+}
+
+els.languageSelect.addEventListener("change", async () => {
+  state.language = els.languageSelect.value;
+  localStorage.setItem("myet_lang", state.language);
+
+  applyStaticTranslations();
+  updateProfileLabel();
+  updateSourceNote();
+  await translateArticlesToCurrentLanguage();
+  renderGrid();
+  renderTicker();
+});
+
+(function initLanguage() {
+  els.languageSelect.value = state.language;
+  applyStaticTranslations();
+})();
+
+/**
+ * Returns { title, description } for an article in the currently active
+ * language — the original English if language is "en" or no translation
+ * exists yet, otherwise the cached translated version.
+ */
+function getDisplayText(article) {
+  if (state.language === "en") return { title: article.title, description: article.description };
+  const cached = article.translations && article.translations[state.language];
+  return cached || { title: article.title, description: article.description };
+}
+
+/**
+ * Translates every currently loaded article's title+description into the
+ * active language via one batched backend call, caching results per-article
+ * per-language so switching languages back and forth never re-translates.
+ */
+async function translateArticlesToCurrentLanguage() {
+  if (state.language === "en") return;
+
+  const needsTranslation = state.articles.filter(
+    (a) => !(a.translations && a.translations[state.language])
+  );
+  if (needsTranslation.length === 0) return;
+
+  state.isTranslating = true;
+  renderGrid(); // shows the "Translating…" state immediately
+
+  const texts = [];
+  needsTranslation.forEach((a) => texts.push(a.title, a.description));
+
+  try {
+    const res = await fetch(`${API_BASE}/api/translate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts, targetLanguage: LANGUAGE_NAMES[state.language] }),
+    });
+    const data = await res.json();
+
+    if (data.ok && Array.isArray(data.translations)) {
+      needsTranslation.forEach((a, i) => {
+        a.translations = a.translations || {};
+        a.translations[state.language] = {
+          title: data.translations[i * 2] || a.title,
+          description: data.translations[i * 2 + 1] || a.description,
+        };
+      });
+    }
+    // If translation failed, getDisplayText() just falls back to English —
+    // no error state needed, the feed stays fully usable either way.
+  } catch (err) {
+    console.error("[translate] Request failed, showing original text:", err);
+  } finally {
+    state.isTranslating = false;
+  }
+}
+
 // ===== Profile picker =====
 els.profilePicker.addEventListener("click", (e) => {
   const btn = e.target.closest(".profile-btn");
@@ -59,7 +182,7 @@ els.profilePicker.addEventListener("click", (e) => {
   els.profilePicker.querySelectorAll(".profile-btn").forEach((b) => b.classList.remove("is-active"));
   btn.classList.add("is-active");
   state.profile = btn.dataset.profile;
-  els.profileLabel.textContent = state.profile;
+  updateProfileLabel();
   loadNews(); // profile changes the query, so the feed needs to actually refetch
 });
 
@@ -78,7 +201,7 @@ els.interestChips.addEventListener("click", (e) => {
 
 els.refreshBtn.addEventListener("click", loadNews);
 
-// ===== Search (client-side filter over loaded articles) =====
+// ===== Search (client-side filter over loaded articles, searches displayed-language text) =====
 let searchDebounce;
 els.searchInput.addEventListener("input", () => {
   clearTimeout(searchDebounce);
@@ -90,7 +213,7 @@ els.searchInput.addEventListener("input", () => {
 
 // ===== Load news =====
 async function loadNews() {
-  els.newsGrid.innerHTML = `<p style="color:var(--ink-soft); font-family: var(--font-body);">Fetching signal…</p>`;
+  els.newsGrid.innerHTML = `<p style="color:var(--ink-soft); font-family: var(--font-body);">${t("fetchingSignal", state.language)}</p>`;
 
   try {
     const params = new URLSearchParams({
@@ -101,18 +224,21 @@ async function loadNews() {
     const data = await res.json();
 
     state.articles = data.articles || [];
-    renderGrid();
-    renderTicker();
 
     if (data.source === "mock") {
-      els.sourceNote.textContent = "Showing demo clippings — add NEWS_API_KEY to backend/.env for live data.";
+      state.lastFetchOutcome = { type: "mock" };
     } else if (data.source === "mock-fallback") {
-      els.sourceNote.textContent = `Live fetch failed, showing demo data. (${data.error || "unknown error"})`;
+      state.lastFetchOutcome = { type: "mock-fallback", error: data.error };
     } else if (state.profile !== "General" && data.profileApplied === false) {
-      els.sourceNote.textContent = `Not enough "${state.profile}"-specific results right now — showing broader matches instead.`;
+      state.lastFetchOutcome = { type: "profile-loosened" };
     } else {
-      els.sourceNote.textContent = "Live feed from NewsAPI.";
+      state.lastFetchOutcome = { type: "live" };
     }
+    updateSourceNote();
+
+    await translateArticlesToCurrentLanguage();
+    renderGrid();
+    renderTicker();
   } catch (err) {
     els.newsGrid.innerHTML = `<p style="color:var(--red-burst);">Couldn't reach the backend at ${API_BASE}. Is it running?</p>`;
     console.error(err);
@@ -120,25 +246,32 @@ async function loadNews() {
 }
 
 function renderGrid() {
+  const lang = state.language;
+
+  if (state.isTranslating) {
+    els.newsGrid.innerHTML = `<p style="color:var(--ink-soft); font-family: var(--font-body);">${t("translating", lang)}</p>`;
+    return;
+  }
+
   const term = state.searchTerm;
+  const withDisplayText = state.articles.map((a) => ({ article: a, display: getDisplayText(a) }));
   const visible = term
-    ? state.articles.filter(
-        (a) =>
-          a.title.toLowerCase().includes(term) ||
-          a.description.toLowerCase().includes(term)
+    ? withDisplayText.filter(
+        ({ display }) =>
+          display.title.toLowerCase().includes(term) || display.description.toLowerCase().includes(term)
       )
-    : state.articles;
+    : withDisplayText;
 
   if (visible.length === 0) {
     const msg = term
-      ? `No clippings match "${escapeHtml(term)}".`
-      : "No articles match your selected interests. Try adding one.";
+      ? `${t("noSearchMatch", lang)} "${escapeHtml(term)}"`
+      : t("noArticlesMatch", lang);
     els.newsGrid.innerHTML = `<p style="color:var(--ink-soft);">${msg}</p>`;
     return;
   }
 
   els.newsGrid.innerHTML = visible
-    .map((a, i) => {
+    .map(({ article: a, display }, i) => {
       const isSaved = state.savedIds.has(a.id);
       const tilt = [-1, 1, -0.6, 0.8][i % 4];
       const delay = (i % 6) * 0.06;
@@ -148,18 +281,19 @@ function renderGrid() {
                onerror="this.parentElement.remove()" />
            </div>`
         : "";
+      const categoryLabel = t(CATEGORY_KEYS[a.category] || a.category, lang);
       return `
         <article class="card" data-id="${a.id}" style="--tilt:${tilt}deg; animation-delay:${delay}s;">
           ${imageBlock}
-          <span class="card__meta">${a.category} · ${a.source}</span>
-          <h3 class="card__title">${escapeHtml(a.title)}</h3>
-          <p class="card__desc">${escapeHtml(a.description)}</p>
+          <span class="card__meta">${escapeHtml(categoryLabel)} · ${escapeHtml(a.source)}</span>
+          <h3 class="card__title">${escapeHtml(display.title)}</h3>
+          <p class="card__desc">${escapeHtml(display.description)}</p>
           <div class="card__actions">
             <button class="card__action save-btn ${isSaved ? "is-saved" : ""}" data-id="${a.id}">
-              <svg width="14" height="14"><use href="#icon-star"/></svg> ${isSaved ? "Saved" : "Save"}
+              <svg width="14" height="14"><use href="#icon-star"/></svg> ${isSaved ? t("saved", lang) : t("save", lang)}
             </button>
             <button class="card__action ask-btn" data-id="${a.id}">
-              <svg width="14" height="14"><use href="#icon-megaphone"/></svg> Ask AI
+              <svg width="14" height="14"><use href="#icon-megaphone"/></svg> ${t("askAI", lang)}
             </button>
           </div>
         </article>
@@ -176,19 +310,21 @@ function renderGrid() {
 }
 
 function renderTicker() {
-  const titles = state.articles.map((a) => `▸ ${a.title}`).join("   ");
-  els.tickerTrack.innerHTML = `<span class="ticker__item">${escapeHtml(titles || "No headlines yet.")}</span>`;
+  const lang = state.language;
+  const titles = state.articles.map((a) => `▸ ${getDisplayText(a).title}`).join("   ");
+  els.tickerTrack.innerHTML = `<span class="ticker__item">${escapeHtml(titles || t("loadingTicker", lang))}</span>`;
 }
 
 function toggleSave(id, btn) {
+  const lang = state.language;
   if (state.savedIds.has(id)) {
     state.savedIds.delete(id);
     btn.classList.remove("is-saved");
-    btn.innerHTML = `<svg width="14" height="14"><use href="#icon-star"/></svg> Save`;
+    btn.innerHTML = `<svg width="14" height="14"><use href="#icon-star"/></svg> ${t("save", lang)}`;
   } else {
     state.savedIds.add(id);
     btn.classList.add("is-saved");
-    btn.innerHTML = `<svg width="14" height="14"><use href="#icon-star"/></svg> Saved`;
+    btn.innerHTML = `<svg width="14" height="14"><use href="#icon-star"/></svg> ${t("saved", lang)}`;
   }
   localStorage.setItem("myet_saved", JSON.stringify([...state.savedIds]));
 }
@@ -205,7 +341,8 @@ function closeChat() { els.chatDrawer.classList.remove("is-open"); }
 
 els.chatToggle.addEventListener("click", () => {
   state.activeChatContext = null;
-  els.chatContext.textContent = "General question — not tied to a specific clipping.";
+  state.activeChatArticleId = null;
+  els.chatContext.textContent = t("chatContextGeneral", state.language);
   openChat();
 });
 els.chatClose.addEventListener("click", closeChat);
@@ -213,8 +350,13 @@ els.chatClose.addEventListener("click", closeChat);
 function openChatWithContext(articleId) {
   const article = state.articles.find((a) => a.id === articleId);
   if (!article) return;
+  // Always send Gemini the ORIGINAL English text as context, regardless of
+  // display language — translating the context twice (display + chat) would
+  // compound errors. The chat *response* is what gets localized instead.
   state.activeChatContext = `${article.title}. ${article.description}`;
-  els.chatContext.textContent = `Context: "${article.title}"`;
+  state.activeChatArticleId = articleId;
+  const display = getDisplayText(article);
+  els.chatContext.textContent = `Context: "${display.title}"`;
   openChat();
 }
 
@@ -226,13 +368,17 @@ els.chatForm.addEventListener("submit", async (e) => {
   appendMessage(question, "user");
   els.chatInput.value = "";
 
-  const thinkingEl = appendMessage("Thinking…", "ai");
+  const thinkingEl = appendMessage(t("thinking", state.language), "ai");
 
   try {
     const res = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, articleContext: state.activeChatContext }),
+      body: JSON.stringify({
+        question,
+        articleContext: state.activeChatContext,
+        language: LANGUAGE_NAMES[state.language],
+      }),
     });
     const data = await res.json();
     thinkingEl.textContent = data.answer;
