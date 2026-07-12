@@ -51,6 +51,8 @@ const els = {
   modalDeck: document.getElementById("modalDeck"),
   modalImageWrap: document.getElementById("modalImageWrap"),
   modalImage: document.getElementById("modalImage"),
+  modalImagePlaceholder: document.getElementById("modalImagePlaceholder"),
+  modalCameraBadge: document.getElementById("modalCameraBadge"),
   modalBody: document.getElementById("modalBody"),
   modalReadMore: document.getElementById("modalReadMore"),
   modalAskAI: document.getElementById("modalAskAI"),
@@ -163,7 +165,7 @@ async function translateArticlesToCurrentLanguage() {
   renderGrid(); // shows the "Translating…" state immediately
 
   const texts = [];
-  needsTranslation.forEach((a) => texts.push(a.title, a.description, a.content || a.description));
+  needsTranslation.forEach((a) => texts.push(a.title, a.description || "", a.content || a.description || ""));
 
   try {
     const res = await fetch(`${API_BASE}/api/translate`, {
@@ -275,7 +277,7 @@ function renderGrid() {
   const visible = term
     ? withDisplayText.filter(
         ({ display }) =>
-          display.title.toLowerCase().includes(term) || display.description.toLowerCase().includes(term)
+          display.title.toLowerCase().includes(term) || (display.description || "").toLowerCase().includes(term)
       )
     : withDisplayText;
 
@@ -299,12 +301,16 @@ function renderGrid() {
            </div>`
         : "";
       const categoryLabel = t(CATEGORY_KEYS[a.category] || a.category, lang);
+      const cardDescText = display.description || display.content || "";
+      const descBlock = cardDescText
+        ? `<p class="card__desc">${escapeHtml(cardDescText)}</p>`
+        : "";
       return `
         <article class="card" data-id="${a.id}" style="--tilt:${tilt}deg; animation-delay:${delay}s;">
           ${imageBlock}
           <span class="card__meta">${escapeHtml(categoryLabel)} · ${escapeHtml(a.source)}</span>
           <h3 class="card__title">${escapeHtml(display.title)}</h3>
-          <p class="card__desc">${escapeHtml(display.description)}</p>
+          ${descBlock}
           <div class="card__actions">
             <button class="card__action save-btn ${isSaved ? "is-saved" : ""}" data-id="${a.id}">
               <svg width="14" height="14"><use href="#icon-star"/></svg> ${isSaved ? t("saved", lang) : t("save", lang)}
@@ -381,20 +387,32 @@ function openArticleDetail(articleId) {
     : "";
 
   els.modalHeadline.textContent = display.title;
-  els.modalDeck.textContent = display.description;
 
-  if (article.image) {
-    els.modalImageWrap.style.display = "";
-    els.modalImage.src = article.image;
-    els.modalImage.alt = display.title;
+  // Only show the deck line when there's a real description — previously this
+  // displayed the literal fallback sentence "No description available." styled
+  // like an actual editorial pull-quote, which read as if it were real content.
+  if (display.description) {
+    els.modalDeck.textContent = display.description;
+    els.modalDeck.style.display = "";
   } else {
-    els.modalImageWrap.style.display = "none";
+    els.modalDeck.style.display = "none";
   }
 
-  // Body: prefer NewsAPI's longer "content" field over the short description,
-  // since that's the whole point of the detail view — falls back gracefully
-  // if content wasn't available for this article.
-  els.modalBody.textContent = display.content || display.description;
+  if (article.image) {
+    els.modalImage.style.display = "";
+    els.modalImage.src = article.image;
+    els.modalImage.alt = display.title;
+    els.modalImagePlaceholder.style.display = "none";
+    els.modalCameraBadge.style.display = "";
+  } else {
+    els.modalImage.style.display = "none";
+    els.modalImagePlaceholder.style.display = "flex";
+    els.modalCameraBadge.style.display = "none";
+  }
+
+  // Body: prefer NewsAPI's longer "content" field, then the description, and
+  // only fall back to a generic message if NewsAPI genuinely gave us neither.
+  els.modalBody.textContent = display.content || display.description || t("noSummary", lang);
 
   els.modalReadMore.href = article.url || "#";
   els.modalAskAI.onclick = () => {
@@ -440,7 +458,8 @@ function openChatWithContext(articleId) {
   // Always send Gemini the ORIGINAL English text as context, regardless of
   // display language — translating the context twice (display + chat) would
   // compound errors. The chat *response* is what gets localized instead.
-  state.activeChatContext = `${article.title}. ${article.description}`;
+  const summary = article.description || article.content || "";
+  state.activeChatContext = summary ? `${article.title}. ${summary}` : article.title;
   state.activeChatArticleId = articleId;
   const display = getDisplayText(article);
   els.chatContext.textContent = `Context: "${display.title}"`;
